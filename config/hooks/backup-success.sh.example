@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# This script will be executed in case the restic command returns success.
+# 
+# In this example we will call a Discord webhook URL to keep us up to date that the backup is still working,
+# But of course you can modify this script to fit your needs!
+
+
+
+# Configuration
+BACKUP_NAME="ServerName Daily - RemoteServerName"
+WEBHOOK_URL="https://discord.com/api/webhooks/WEBHOOK_ID/WEBHOOK_TOKEN"
+
+
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+curl -X POST \
+-H "Content-Type: application/json" \
+-d '{
+  "username": "Docker Restic Backup",
+  "embeds": [
+    {
+      "title": "Backup Success",
+      "description": "The restic process successfully finished, check the server logs for more information.",
+      "color": 65280,
+      "fields": [
+        {
+          "name": "Backup Name",
+          "value": "'"${BACKUP_NAME}"'",
+          "inline": true
+        },
+        {
+          "name": "Timestamp",
+          "value": "'"${TIMESTAMP}"'",
+          "inline": true
+        }
+      ],
+      "footer": {
+        "text": "Docker Restic Backup"
+      },
+      "timestamp": "'"${TIMESTAMP}"'"
+    }
+  ]
+}' \
+"$WEBHOOK_URL"

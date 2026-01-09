@@ -1,0 +1,14 @@
+# Package managers & build artifacts
+vendor/**
+node_modules/**
+dist/**
+build/**
+target/**
+
+# Python virtual environments
+venv/**
+
+# Misc OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
