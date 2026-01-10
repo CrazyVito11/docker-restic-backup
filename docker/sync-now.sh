@@ -1,81 +1,32 @@
 #!/bin/bash
 
+##############################################################
+#                                                            #
+#  This script is responsible for preparing the environment  #
+#   for backup-process.sh, it also handles creating logs.    #
+#                                                            #
+##############################################################
+
 set -e
+set -o allexport;
+
+source /config/base.env;
+source /config/user.env; 
 
 TIMESTAMP=$(date +"%Y-%m-%d-%H%M")
 
 LOG_DIR="/logs"
 LOG_FILE="${LOG_DIR}/${TIMESTAMP}-restic.log"
 
-LOCK_FILE="/var/lock/sync-now.lock"
-SUCCESS_SCRIPT="/hooks/backup-success.sh"
-FAILURE_SCRIPT="/hooks/backup-failure.sh"
-LOCK_PRESENT_SCRIPT="/hooks/lock-present.sh"
-
-export RESTIC_REPOSITORY_FILE="/config/restic-repository"
-export RESTIC_PASSWORD_FILE="/config/.restic-password"
-
-# Parse any flags that we received
-for arg in "$@"; do
-    if [[ "$arg" == "--create-repository" ]]; then
-        echo "Flag --create-repository detected, will attempt to initialize the repository"
-
-        FLAG_CREATE_REPOSITORY=true
-    fi
-
-    if [[ "$arg" == "--dry-run" ]]; then
-        echo "Flag --dry-run detected, will execute as a dry run"
-
-        FLAG_DRY_RUN=true
-    fi
-done
-
-run_script_if_exists() {
-    local script_path="$1"
-
-    if [[ -f "$script_path" ]]; then
-        echo "Executing script: $script_path"
-
-        if ! bash "$script_path"; then
-            echo "Warning: Execution of $script_path failed"
-        fi
-    fi
-}
-
-# Function to clean up lock file on exit
-cleanup() {
-    if [[ -f "$LOCK_FILE" ]]; then
-        rm -f "$LOCK_FILE"
-    fi
-}
+echo "---------------[ Docker Restic Backup ]---------------" >  $LOG_FILE
+echo "Timestamp:  $(date)"                                    >> $LOG_FILE
+echo "Source dir: ${BACKUP_DIRECTORY}"                        >> $LOG_FILE
+echo "SFTP IP:    ${SFTP_HOST_IP}"                            >> $LOG_FILE
+echo "SFTP Port:  ${SFTP_HOST_PORT}"                          >> $LOG_FILE
+echo "SFTP User:  ${SFTP_HOST_USERNAME}"                      >> $LOG_FILE
+echo "SFTP Path:  ${SFTP_HOST_DESTINATION_PATH}"              >> $LOG_FILE
+echo "------------------------------------------------------" >> $LOG_FILE
+echo -e "\n"                                                  >> $LOG_FILE
 
 
-# Ensure no other instance is running
-if [[ -f "$LOCK_FILE" ]]; then
-    echo "Another instance of sync-now.sh is running. Exiting."
-    run_script_if_exists "$LOCK_PRESENT_SCRIPT"
-    exit 1
-fi
-
-
-# Run cleanup on exit
-trap cleanup EXIT
-
-
-touch "$LOCK_FILE"
-
-
-# Should we initialize the repository?
-if ${FLAG_CREATE_REPOSITORY:-false}; then
-    restic init
-fi
-
-
-# TODO: Add support for running as a dry-run
-# TODO: Implement checking if /config/excludes.txt exists and if so, add "--exclude-file /config/excludes.txt" to restic
-# TODO: Implement logs
-# TODO: Implement running hook scripts on success or failure
-
-
-echo "Starting backup..."
-cd /data && restic backup .
+bash /app/scripts/backup-process.sh "$@" | tee -a $LOG_FILE

@@ -22,7 +22,7 @@ It should now automatically create the backup for you at the cron time you confi
 
 > [!TIP]
 > If you make a configuration change, don't forget to rebuild container again.
-> Just restarting the container won't work because certain configuration files need to be regenerated.
+> Just restarting the container won't work because the configuration files need to be regenerated.
 >
 > `docker compose down && docker compose up -d --build`
 
@@ -34,6 +34,8 @@ The configuration steps that are needed will depend on what kind of machine the 
 2. A backup user has been made with username + SSH key authentication.
 3. The backup directory has nothing else inside it.
 4. The backup user has read and write access to the backup directory.
+5. No other machine will save snapshots to the same Restic repository.
+    - **Note:** You can still use the same remote for other machines, you just have to use a different directory to store the Restic repository in.
 
 > [!TIP]
 > If for some reason your server refuses the SSH key, double check the permissions of `.ssh` and `.ssh/authorized_keys` permissions are set properly.
@@ -58,6 +60,11 @@ If you want to make the backup immediately, you can use the following command:
 ```bash
 docker compose exec docker-restic-backup bash /sync-now.sh
 ```
+
+> [!TIP]
+> If you just want to validate what will happen when you run the sync, you can enable the `--dry-run` flag.
+>
+> This can be useful if you are setting up your own `excludes.txt` file.
 
 
 ### Restore from remote backup
