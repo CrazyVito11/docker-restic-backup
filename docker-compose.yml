@@ -6,6 +6,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro  # Use host machine timezone
       - ./logs:/logs                      # Directory for logs
+      - ./exports:/exports                # Directory for backup exports
       - ${BACKUP_DIRECTORY}:/data:ro      # Directory to sync
     restart: unless-stopped
     network_mode: host

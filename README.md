@@ -18,7 +18,7 @@ It should now automatically create the backup for you at the cron time you confi
 > [!WARNING]
 > Make sure you store the configured password in a secure place like a password manager, as without those, your backups will be ***useless***!
 >
-> It's recommended you also store your SSH key there for a faster restore time if you ever need to fully restore from backups.
+> It's recommended you store your entire `./config/.env` and SSH keys there for a faster restore time if you ever need to fully restore from backups.
 
 > [!TIP]
 > If you make a configuration change, don't forget to rebuild container again.
@@ -68,7 +68,37 @@ docker compose exec docker-restic-backup bash /sync-now.sh
 
 
 ### Restore from remote backup
+> [!TIP]
+> This container is mainly focused on making the backup itself, making sure it's done correctly and with easy monitoring capabilities.
+>
+> While it's also possible to restore files using this container, it isn't the most optimal experience due to limitations of running it containerized.
+>
+> It might be easier to just install Restic on the machine itself purely for restoring purposes.
+> This will give you the ability to restore directly to the right directory or mount the repository.
+
+#### Original server is still functional
+If the server is still functional and you need to roll back or restore a deleted file for example, it's quite easy to do so.
+
+First, it's recommended to activate the backup kill switch, this will prevent any backups from being made by accident during the restoration.
+Set `BACKUP_KILL_SWITCH` to `true` in the `./config/.env` file and rebuild the container with `docker compose down && docker compose up -d --build`.
+
 ***TODO:** Document this*
+
+> [!TIP]
+> Once you've restored the files, don't forget to disable the backup kill switch and rebuild the container. 😉
+
+
+#### Original server is no longer functional
+If you need to restore from another machine or from a clean install, you will first have to execute a couple more steps before you can restore your data as usual.
+
+First, make sure you have installed Docker again on the machine and have this repository cloned.
+
+You will then need to restore the following files:
+1. Your `./config/.env` file.
+2. Your SSH keys.
+3. Your SSH known hosts file.
+
+You can now just follow the same instructions as if the server was still functional.
 
 
 ## Tips

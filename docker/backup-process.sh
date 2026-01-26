@@ -55,6 +55,14 @@ cleanup() {
 }
 
 
+# Check if the kill switch isn't activated
+if [ "$BACKUP_KILL_SWITCH" = true ]; then
+    echo "Backup kill switch is active. Exiting."
+    run_script_if_exists "$FAILURE_SCRIPT"
+    exit 1
+fi
+
+
 # Ensure no other instance is running
 if [[ -f "$LOCK_FILE" ]]; then
     echo "Another instance of sync-now.sh is running. Exiting."
