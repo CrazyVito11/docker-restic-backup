@@ -9,8 +9,10 @@ RUN apk add fcron bash envsubst curl
 # Prepare the sync script
 COPY /docker/backup-process.sh /app/scripts/
 COPY /docker/sync-now.sh /app/scripts/
+COPY /docker/health-check.sh /app/scripts/
 RUN chmod +x /app/scripts/backup-process.sh
 RUN chmod +x /app/scripts/sync-now.sh
+RUN chmod +x /app/scripts/health-check.sh
 RUN ln -s /app/scripts/sync-now.sh /sync-now.sh
 
 # Prepare configuration
@@ -27,10 +29,9 @@ RUN bash -c 'set -o allexport; source /config/user.env; echo -e "sftp:restic-bac
 RUN bash -c 'set -o allexport; source /config/user.env; echo -e "$REPOSITORY_PASSWORD" > /config/.restic-password'
 
 # Configure fcron
-RUN bash -c 'set -o allexport; source /config/user.env; echo "$BACKUP_CRON_INTERVAL bash -c \"/app/scripts/sync-now.sh\" >> /tmp/cron.log 2>&1" > /tmp/fcron.tab'
+RUN touch /tmp/fcron.tab
+RUN bash -c 'set -o allexport; source /config/user.env; echo "$BACKUP_CRON_INTERVAL bash -c \"/app/scripts/sync-now.sh\" >> /tmp/cron.log 2>&1" >> /tmp/fcron.tab'
+RUN bash -c 'set -o allexport; source /config/user.env; echo "$HEALTH_CHECK_CRON_INTERVAL bash -c \"/app/scripts/health-check.sh\" >> /tmp/cron.log 2>&1" >> /tmp/fcron.tab'
 RUN fcrontab /tmp/fcron.tab
-
-# TODO: Add cron job for checking the health of the repository
-# TODO: Check for any potential security issues and improve them
 
 ENTRYPOINT ["fcron", "--foreground", "--firstsleep", "0"]

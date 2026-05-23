@@ -177,8 +177,10 @@ You have the ability to run your own Bash scripts at certain events, this can al
 
 A couple of examples have been provided in the `hooks` directory.
 
-| Event            | Script name         | Description                                                        |
-|------------------|---------------------|--------------------------------------------------------------------|
-| Backup success   | `backup-success.sh` | Executed when the Restic command successfully finishes.            |
-| Backup failure   | `backup-failure.sh` | Executed when the Restic command ran against some kind of error.   |
-| Lock file exists | `lock-present.sh`   | Executed when the lock file exists, indicating it's still syncing. |
+| Event                | Script name               | Description                                                        |
+|----------------------|---------------------------|--------------------------------------------------------------------|
+| Backup success       | `backup-success.sh`       | Executed when the Restic command successfully finishes.            |
+| Backup failure       | `backup-failure.sh`       | Executed when the Restic command ran against some kind of error.   |
+| Lock file exists     | `lock-present.sh`         | Executed when the lock file exists, indicating it's still syncing. |
+| Health check success | `health-check-success.sh` | Executed when the repository health check passes successfully.     |
+| Health check failure | `health-check-failure.sh` | Executed when the repository health check fails.                   |
