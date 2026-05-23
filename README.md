@@ -82,10 +82,66 @@ If the server is still functional and you need to roll back or restore a deleted
 First, it's recommended to activate the backup kill switch, this will prevent any backups from being made by accident during the restoration.
 Set `BACKUP_KILL_SWITCH` to `true` in the `./config/.env` file and rebuild the container with `docker compose down && docker compose up -d --build`.
 
-***TODO:** Document this*
+Then we can enter a shell with the required environment variables set to allow Restic to be run manually:
+
+```bash
+docker compose exec -e RESTIC_REPOSITORY_FILE=/config/restic-repository -e RESTIC_PASSWORD_FILE=/config/.restic-password docker-restic-backup bash
+```
+
+All restic commands in the sections below should be run inside this shell.
+
+Then you can list the available snapshots to find the one you want to restore from:
+```bash
+restic snapshots
+```
+
+You can also browse the contents of a specific snapshot before restoring:
+```bash
+restic ls <snapshot-id>
+```
 
 > [!TIP]
-> Once you've restored the files, don't forget to disable the backup kill switch and rebuild the container. 😉
+> You can use `latest` as the snapshot ID to always target the most recent snapshot.
+
+
+##### Understanding path mapping
+The container mounts your `BACKUP_DIRECTORY` as `/data` _(read-only)_, and the backup is made from there.
+
+This means snapshot paths are going to be relative to `BACKUP_DIRECTORY`.
+To find the path to pass to `--include`, simply strip the `BACKUP_DIRECTORY` prefix from the host path:
+
+| Host path                                        | Snapshot path _(use with `--include`)_ |
+|--------------------------------------------------|----------------------------------------|
+| `${BACKUP_DIRECTORY}/projects/myapp/config.json` | `/projects/myapp/config.json`          |
+| `${BACKUP_DIRECTORY}/photos/2024`                | `/photos/2024`                         |
+
+However, since `/data` is mounted read-only for safety reasons, we can't restore there directly.
+
+As a workaround, we can restore files and snapshots to `/exports` instead _(mapped to `./exports` on the host)_, which is writable by the container.
+
+After restoring, the files will be under `./exports` in the same sub-path structure they had originally.
+
+##### Restoring commands
+You can restore specific files and directories, or an entire snapshot if needed.
+Both have their own use-cases and thus, both have been provided as an example.
+
+After restoring, you can move the files from `./exports` back to their original location on the host.
+
+> [!TIP]
+> Once you've restored the files or snapshot, don't forget to disable the backup kill switch and rebuild the container. 😉
+
+###### Restore specific files or directories
+> [!WARNING]
+> You should first read the [Understanding path mapping](#understanding-path-mapping) section to understand how to specify the `--include` parameter.
+
+```bash
+restic restore <snapshot-id> --target /exports --include "/path/to/file-or-directory/relative/from/BACKUP_DIRECTORY"
+```
+
+###### Restore an entire snapshot
+```bash
+restic restore <snapshot-id> --target /exports
+```
 
 
 #### Original server is no longer functional
