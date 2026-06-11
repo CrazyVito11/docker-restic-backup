@@ -1,14 +1,26 @@
+# NOTE: If you want to ignore something from the root of your backup directory, use "/data/" as the prefix
+# This is because Restic is being ran inside the container from "/data"
+#
+# Example case: You are backing up your home directory (/home/your-username) and you want to ignore "~/.cache"
+# You would then have to add a rule like "/data/.cache"
+
 # Package managers & build artifacts
-vendor/**
-node_modules/**
-dist/**
-build/**
-target/**
+**/vendor/**
+**/node_modules/**
+**/dist/**
+**/build/**
+**/target/**
 
 # Python virtual environments
-venv/**
+**/venv/**
 
 # Misc OS metadata
-.DS_Store
-Thumbs.db
-desktop.ini
+**/.DS_Store
+**/Thumbs.db
+**/desktop.ini
+
+# Laravel cached data
+**/storage/framework/cache/**
+**/storage/framework/sessions/**
+**/storage/framework/testing/**
+**/storage/framework/views/**

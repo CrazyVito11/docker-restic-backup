@@ -3,15 +3,16 @@ Automatically makes periodic backups of a directory to a remote location via Res
 
 ## Setup
 ### Container
-1. Copy `./config/.env.example` and call it `./config/.env`
-2. Fill in `./config/.env`
-3. Add your SSH key in `./config/ssh`
+1. GIT clone this repository using `git clone https://github.com/CrazyVito11/docker-restic-backup.git`
+2. Copy `./config/.env.example` and call it `./config/.env`
+3. Fill in `./config/.env`
+4. Add your SSH key in `./config/ssh`
     - **Note:** We only need the private key, but it might be handy to also include your public key for quick access.
     - **Tip:** Don't have a key yet? You can generate one with `ssh-keygen -t rsa -N "" -f ./config/ssh/id_rsa`
-4. Add the SSH fingerprint of your remote in `./config/ssh/known_hosts`
+5. Add the SSH fingerprint of your remote in `./config/ssh/known_hosts`
     - **Tip:** You can fetch it using `ssh-keyscan -H XXX.XXX.XXX.XXX >> ./config/ssh/known_hosts`, replacing the X with your remote server IP or hostname.
-5. Start the Docker Compose project with `docker compose up -d --build`
-6. Create the repository and backup with `docker compose exec docker-restic-backup bash /sync-now.sh --create-repository`
+6. Start the Docker Compose project with `docker compose up -d --build`
+7. Create the repository and backup with `docker compose exec docker-restic-backup bash /sync-now.sh --create-repository`
 
 It should now automatically create the backup for you at the cron time you configured.
 
@@ -170,6 +171,17 @@ This file is then automatically passed to Restic if it exists.
 If you want to use this one, you can run this command to apply it `cp ./config/excludes.txt.example ./config/excludes.txt`.
 
 For documentation about exclusion rules, see [the Restic documentation](https://restic.readthedocs.io/en/v0.18.1/040_backup.html#excluding-files).
+
+> [!WARNING]
+> Changing your excludes file still counts as a configuration change, and the container will have to be rebuild as usual.
+
+> [!TIP]
+> Since your backup directory is mounted as `/data` inside the container, use `/data/` as a prefix to exclude something specifically at the root of your backup directory.
+>
+> For example, if you are backing up your home directory _(example: `BACKUP_DIRECTORY="/home/your-username"`)_ and want to exclude `~/.cache`, add `/data/.cache` to your excludes file to specifically ignore that `.cache` directory.
+>
+> This is because Restic inside the container is running from `/data`, and the `excludes.txt` file expects a full path.
+> Without this prefix, a pattern like `.cache` will match any directory with that name at _any_ depth in the backup.
 
 
 ### Run script during specific events
