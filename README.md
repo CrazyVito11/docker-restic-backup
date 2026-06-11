@@ -3,7 +3,7 @@ Automatically makes periodic backups of a directory to a remote location via Res
 
 ## Setup
 ### Container
-1. GIT clone this repository using `git clone git@github.com:CrazyVito11/docker-restic-backup.git`
+1. GIT clone this repository using `git clone https://github.com/CrazyVito11/docker-restic-backup.git`
 2. Copy `./config/.env.example` and call it `./config/.env`
 3. Fill in `./config/.env`
 4. Add your SSH key in `./config/ssh`
